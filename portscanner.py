@@ -2,12 +2,17 @@
 
 import socket
 import argparse
+import signal
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from termcolor import colored
+
+open_sockets = []
 
 def portscanner(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(1)
+    open_sockets.append(s)
 
     try:
         s.connect((host, port))
@@ -17,6 +22,7 @@ def portscanner(host, port):
         pass
 
     finally:
+        open_sockets.remove(s)
         s.close()
 
 def get_arguments():
@@ -38,15 +44,19 @@ def parse_ports(ports):
 
     return [int(ports)]
 
+def handle_sigint(signal, frame):
+    print(colored(f"\n[!] Aborting port scan...\n", 'red'))
+
+    for socket in open_sockets:
+        socket.close()
+
+    sys.exit(1)
+
 if __name__ == "__main__":
  
+    signal.signal(signal.SIGINT, handle_sigint)
     host, ports = get_arguments()
     ports = parse_ports(ports)
 
     with ThreadPoolExecutor(max_workers=100) as executor:
         executor.map(lambda port: portscanner(host, port), ports)
-
-#    for port in ports:
-#        thread = threading.Thread(target=portscanner, args=[host, port])
-#        thread.start()
-#        thread.join()
