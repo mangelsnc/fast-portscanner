@@ -2,7 +2,6 @@
 
 import socket
 import argparse
-import sys
 import threading
 from termcolor import colored
 
@@ -32,7 +31,7 @@ def parse_ports(ports):
     if '-' in ports:
         ports = ports.split('-')
 
-        return range(int(ports[0]), int(ports[1]))
+        return range(int(ports[0]), int(ports[1]) + 1)
     
     if ',' in ports:
         return [int(port) for port in ports.split(',')]
