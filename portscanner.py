@@ -2,7 +2,7 @@
 
 import socket
 import argparse
-import threading
+from concurrent.futures import ThreadPoolExecutor
 from termcolor import colored
 
 def portscanner(host, port):
@@ -43,7 +43,10 @@ if __name__ == "__main__":
     host, ports = get_arguments()
     ports = parse_ports(ports)
 
-    for port in ports:
-        thread = threading.Thread(target=portscanner, args=[host, port])
-        thread.start()
-        thread.join()
+    with ThreadPoolExecutor(max_workers=100) as executor:
+        executor.map(lambda port: portscanner(host, port), ports)
+
+#    for port in ports:
+#        thread = threading.Thread(target=portscanner, args=[host, port])
+#        thread.start()
+#        thread.join()
